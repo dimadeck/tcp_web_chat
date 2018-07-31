@@ -3,7 +3,6 @@ import threading
 
 from tcp_chat.connected import Connected
 from tcp_chat.data_parser import DataParser
-from tcp_chat.http_parser import HttpParser
 
 
 class Server:
@@ -27,31 +26,15 @@ class Server:
     def handler(self, connection, addr):
         while True:
             data = connection.recv(1024)
-            client = self.who_is_client(data)
-            if client == 1:
-                pass
-                # http = HttpParser(data)
-                # ws = WebSide(http)
-                # ws.run_http(connection, http.req_dict)
-            elif client == 2:
-                req = DataParser(data)
-                if req.status == 0:
-                    if self.run_command(connection, req, addr) == -1:
-                        break
-                else:
-                    connection.send(bytes(req.STATUS_DICT[req.status], 'utf-8'))
+            req = DataParser(data)
+            if req.status == 0:
+                if self.run_command(connection, req, addr) == -1:
+                    break
+            else:
+                connection.send(bytes(req.STATUS_DICT[req.status], 'utf-8'))
             if not data:
                 self.logout(connection)
                 break
-
-    @staticmethod
-    def who_is_client(data, encoding='utf-8', separator=' '):
-        cmd = data.decode(encoding).split(separator)[0]
-        if cmd in HttpParser.ALLOWED_METHOD:
-            return 1
-        else:  # elif cmd in DataParser.CMD_LIST:
-            return 2
-        # Обработка ошибок реализована на уровне DataParser
 
     def run_command(self, connection, req, addr):
         if req.cmd == 'login':
@@ -115,9 +98,3 @@ class Server:
         print(f'addrs: {self.connected.addrs.values()}')
         print(f'registered: {self.connected.registered}')
         print('###------[END DEBUG]------###')
-
-    @staticmethod
-    def debug_request(data):
-        print('###------[START REQUEST DEBUG]------###')
-        print(f'{data}')
-        print('###------[END REQUEST DEBUG]------###')
