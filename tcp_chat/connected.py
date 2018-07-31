@@ -14,14 +14,16 @@ class Connected:
     def add_addr(self, connection, addr):
         self.addrs[connection] = addr
 
-    def register_user(self, connection, username, addr):
-        if username not in self.users.values():
-            self.add_user(connection, username)
-            self.add_addr(connection, addr)
-            self.registered.append(connection)
-            return 0
-        else:
+    def is_valid_name(self, username):
+        if username in self.users.values():
             return -1
+        else:
+            return 0
+
+    def register_user(self, connection, username, addr):
+        self.add_user(connection, username)
+        self.add_addr(connection, addr)
+        self.registered.append(connection)
 
     def is_register(self, connection):
         if connection in self.registered:

@@ -1,6 +1,6 @@
 import socket
 import threading
-from tcp_chat.web_side import WebSide
+
 from tcp_chat.connected import Connected
 from tcp_chat.data_parser import DataParser
 from tcp_chat.http_parser import HttpParser
@@ -72,6 +72,8 @@ class Server:
                     return -1
                 else:
                     self.additional_commands(req.cmd, connection)
+            else:
+                connection.send(bytes('Please log in!', "utf-8"))
         return 0
 
     def additional_commands(self, cmd, connection):
@@ -82,10 +84,11 @@ class Server:
             connection.send(bytes(','.join(user_list), 'utf-8'))
 
     def login(self, connection, username, addr):
-        if self.connected.register_user(connection, username, addr) == 0:
+        if self.connected.is_valid_name(username) == 0:
+            self.connected.register_user(connection, username, addr)
             print(
-                f'[+]{str(addr[0])}:{str(addr[1])} log in at '
-                f'{self.connected.get_name_by_connection(connection)}')
+                f'[+]{str(addr[0])}:{str(addr[1])} log in at ['
+                f'{self.connected.get_name_by_connection(connection)}]')
             self.send_all(bytes(f'[ServerMessage] - [{username}] log in.', "utf-8"))
         else:
             connection.send(bytes('[ServerMessage] - login failed.', 'utf-8'))
@@ -103,7 +106,7 @@ class Server:
         username = self.connected.get_name_by_connection(connection)
         self.connected.drop_connection(connection)
         connection.close()
-        print(f'[-]{username} disconnected')
+        print(f'[-][{username}] disconnected')
         self.send_all(bytes(f'[ServerMessage] - [{username}] log out.', "utf-8"))
 
     def debug_info(self):
