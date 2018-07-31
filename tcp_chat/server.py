@@ -9,7 +9,7 @@ from tcp_chat.http_parser import HttpParser
 class Server:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def __init__(self, addr='127.0.0.1', port=10000):
+    def __init__(self, addr='0.0.0.0', port=10000):
         self.sock.bind((addr, port))
         self.sock.listen(5)
         self.connected = Connected()

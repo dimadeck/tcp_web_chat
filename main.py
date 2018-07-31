@@ -10,5 +10,5 @@ if __name__ == '__main__':
         try:
             server = Server()
             server.run()
-        except:
+        except KeyboardInterrupt:
             exit(0)
