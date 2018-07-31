@@ -1,8 +1,9 @@
 import socket
 import threading
-
-from connected import Connected
-from data_parser import DataParser
+from tcp_chat.web_side import WebSide
+from tcp_chat.connected import Connected
+from tcp_chat.data_parser import DataParser
+from tcp_chat.http_parser import HttpParser
 
 
 class Server:
@@ -26,38 +27,59 @@ class Server:
     def handler(self, connection, addr):
         while True:
             data = connection.recv(1024)
-            req = DataParser(data)
-            if req.status == 0:
-                if req.cmd == 'login':
-                    self.login(connection, req.parameter, addr)
-                elif req.cmd == "debug":
-                    self.debug_info()
+            client = self.who_is_client(data)
+            if client == 1:
+                pass
+                # http = HttpParser(data)
+                # ws = WebSide(http)
+                # ws.run_http(connection, http.req_dict)
+            elif client == 2:
+                req = DataParser(data)
+                if req.status == 0:
+                    if self.run_command(connection, req, addr) == -1:
+                        break
                 else:
-                    if self.connected.is_register(connection):
-                        if req.cmd == 'msg':
-                            self.send_message(self.connected.get_name_by_connection(connection), req.parameter,
-                                              req.body_with_name_to_bytes(
-                                                  f'{self.connected.get_name_by_connection(connection)}(*)'))
-                        elif req.cmd == 'msgall':
-                            self.send_all(
-                                req.body_with_name_to_bytes(self.connected.get_name_by_connection(connection)))
-                        elif req.cmd == 'logout':
-                            self.logout(connection)
-                            break
-                        else:
-                            self.additional_commands(req.cmd, connection)
-
-            else:
-                connection.send(bytes(req.STATUS_DICT[req.status], 'utf-8'))
+                    connection.send(bytes(req.STATUS_DICT[req.status], 'utf-8'))
             if not data:
                 self.logout(connection)
                 break
+
+    @staticmethod
+    def who_is_client(data, encoding='utf-8', separator=' '):
+        cmd = data.decode(encoding).split(separator)[0]
+        if cmd in HttpParser.ALLOWED_METHOD:
+            return 1
+        else:  # elif cmd in DataParser.CMD_LIST:
+            return 2
+        # Обработка ошибок реализована на уровне DataParser
+
+    def run_command(self, connection, req, addr):
+        if req.cmd == 'login':
+            self.login(connection, req.parameter, addr)
+        elif req.cmd == "debug":
+            self.debug_info()
+        else:
+            if self.connected.is_register(connection):
+                if req.cmd == 'msg':
+                    self.send_message(self.connected.get_name_by_connection(connection), req.parameter,
+                                      req.body_with_name_to_bytes(
+                                          f'{self.connected.get_name_by_connection(connection)}(*)'))
+                elif req.cmd == 'msgall':
+                    self.send_all(
+                        req.body_with_name_to_bytes(self.connected.get_name_by_connection(connection)))
+                elif req.cmd == 'logout':
+                    self.logout(connection)
+                    return -1
+                else:
+                    self.additional_commands(req.cmd, connection)
+        return 0
 
     def additional_commands(self, cmd, connection):
         if cmd == 'whoami':
             connection.send(bytes(self.connected.get_name_by_connection(connection), 'utf-8'))
         elif cmd == 'userlist':
-            connection.send(bytes(self.connected.get_user_list(), 'utf-8'))
+            user_list = self.connected.get_user_list()
+            connection.send(bytes(','.join(user_list), 'utf-8'))
 
     def login(self, connection, username, addr):
         if self.connected.register_user(connection, username, addr) == 0:
@@ -90,3 +112,9 @@ class Server:
         print(f'addrs: {self.connected.addrs.values()}')
         print(f'registered: {self.connected.registered}')
         print('###------[END DEBUG]------###')
+
+    @staticmethod
+    def debug_request(data):
+        print('###------[START REQUEST DEBUG]------###')
+        print(f'{data}')
+        print('###------[END REQUEST DEBUG]------###')
