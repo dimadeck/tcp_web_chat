@@ -15,13 +15,16 @@ class Server:
         print('[+] Server start')
 
     def run(self):
-        while True:
-            client, addr = self.sock.accept()
-            thread = threading.Thread(target=self.handler, args=(client, addr))
-            thread.daemon = True
-            thread.start()
-            self.connected.add_connection(client)
-            print(f'[+]{str(addr[0])}:{str(addr[1])} connected')
+        try:
+            while True:
+                client, addr = self.sock.accept()
+                thread = threading.Thread(target=self.handler, args=(client, addr))
+                thread.daemon = True
+                thread.start()
+                self.connected.add_connection(client)
+                print(f'[+]{str(addr[0])}:{str(addr[1])} connected')
+        except KeyboardInterrupt:
+            self.sock.close()
 
     def handler(self, connection, addr):
         while True:
@@ -37,7 +40,7 @@ class Server:
                 break
 
     def run_command(self, connection, req, addr):
-        if req.cmd == 'login':
+        if req.cmd == 'login' and not self.connected.is_register(connection):
             self.login(connection, req.parameter, addr)
         elif req.cmd == "debug":
             self.debug_info()
