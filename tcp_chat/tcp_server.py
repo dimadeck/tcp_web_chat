@@ -2,5 +2,9 @@ from tcp_chat.server import Server
 
 
 def start_server():
-    server = Server()
-    server.run()
+    try:
+        server = Server()
+        server.run()
+    except KeyboardInterrupt:
+        exit(0)
+

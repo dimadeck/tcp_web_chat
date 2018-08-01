@@ -1,6 +1,10 @@
-from web_chat import socketio_chat, create_app
+from web_chat import socketio_chat, create_app, bind
 
 
 def start_server():
-    app = create_app()
-    socketio_chat.run(app)
+    try:
+        app = create_app()
+        bind.connect_to_tcp()
+        socketio_chat.run(app)
+    except KeyboardInterrupt:
+        exit(0)

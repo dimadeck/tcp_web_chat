@@ -1,9 +1,12 @@
 from flask import Blueprint, Flask
 from flask_socketio import SocketIO
 
+from bind import Bind
+
 room = 'Chat'
 main_chat = Blueprint('main', __name__)
 socketio_chat = SocketIO()
+bind = Bind()
 
 from web_chat import route, form, events
 

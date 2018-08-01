@@ -30,14 +30,15 @@ class Server:
         while True:
             data = connection.recv(1024)
             req = DataParser(data)
-            if req.status == 0:
-                if self.run_command(connection, req, addr) == -1:
+            if len(data) > 1:
+                if req.status == 0:
+                    if self.run_command(connection, req, addr) == -1:
+                        break
+                else:
+                    connection.send(bytes(req.STATUS_DICT[req.status], 'utf-8'))
+                if not data:
+                    self.logout(connection)
                     break
-            else:
-                connection.send(bytes(req.STATUS_DICT[req.status], 'utf-8'))
-            if not data:
-                self.logout(connection)
-                break
 
     def run_command(self, connection, req, addr):
         if req.cmd == 'login' and not self.connected.is_register(connection):
