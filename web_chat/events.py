@@ -1,4 +1,4 @@
-from flask import session
+from flask import session, request
 from flask_socketio import emit, join_room, leave_room
 
 from web_chat import socketio_chat, room, bind
@@ -9,6 +9,7 @@ def open(message):
     try:
         key = session['csrf_token']
         bind.new_web_connection(key)
+        bind.launch()
     except:
         pass
 
