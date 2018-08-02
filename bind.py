@@ -21,17 +21,14 @@ class Bind:
         except KeyError:
             mode = -1
         msg = ''
-        if mode == 1 and kw["message"] == 'debug':
-            self.tcp_to_web()
-        else:
-            if mode in [0, 1, 2]:
-                if mode == 0:
-                    msg = f'login {kw["name"]}'
-                elif mode == 1:
-                    msg = f'msgall {kw["message"]}'
-                elif mode == 2:
-                    msg = f'logout'
-                connect.send(bytes(msg, 'utf-8'))
+        if mode in [0, 1, 2]:
+            if mode == 0:
+                msg = f'login {kw["name"]}'
+            elif mode == 1:
+                msg = f'msgall {kw["message"]}'
+            elif mode == 2:
+                msg = f'logout'
+            connect.send(bytes(msg, 'utf-8'))
 
     def launch(self):
         if self.not_launch:
