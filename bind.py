@@ -46,7 +46,7 @@ class Bind:
                 for key, connection in self.connections.items():
                     data = connection.recv(1024)
                     if not data:
-                        self.connections.pop(connection)
+                        self.connections.pop(key)
                     print(str(data, 'utf-8'))
                 if len(self.connections) == 0:
                     self.not_launch = True
