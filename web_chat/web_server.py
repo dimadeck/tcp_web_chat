@@ -1,4 +1,4 @@
-from web_chat import socketio_chat, create_app, bind
+from web_chat import socketio_chat, create_app
 
 
 def start_server():
